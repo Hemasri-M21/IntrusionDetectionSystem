@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 import joblib
 from flask_cors import CORS
 import pandas as pd
@@ -31,7 +31,7 @@ attack_types = [
 # Home route
 @app.route("/")
 def home():
-    return "IDS Backend Running"
+    return render_template("index.html")
 
 # Predict route
 @app.route("/predict/<mode>")
