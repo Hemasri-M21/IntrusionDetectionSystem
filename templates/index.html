@@ -77,7 +77,7 @@ setInterval(autoScan,3000);
 
 function autoScan(){
 
-fetch("http://127.0.0.1:5000/predict/normal")
+fetch("/predict/normal")
 .then(response => response.json())
 .then(data => {
 
@@ -89,7 +89,7 @@ let randomChance=Math.random();
 
 if(randomChance>0.7){
     // simulate attack event using backend
-    fetch("http://127.0.0.1:5000/predict/attack")
+    fetch("/predict/attack")
     .then(r=>r.json())
     .then(d=>showAttack(d));
 }
