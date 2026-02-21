@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IDS SOC Dashboard</title>
+
+<style>
+body{
+    background:#020617;
+    font-family:Arial;
+    color:white;
+    text-align:center;
+    margin-top:40px;
+}
+
+h1{
+    color:#38bdf8;
+}
+
+/* Main Panel */
+#panel{
+    margin:auto;
+    margin-top:30px;
+    width:420px;
+    padding:30px;
+    border-radius:12px;
+    background:#111827;
+    font-size:22px;
+    font-weight:bold;
+}
+
+/* Threat Meter */
+#meterBox{
+    width:400px;
+    height:20px;
+    background:#1e293b;
+    margin:auto;
+    margin-top:20px;
+    border-radius:10px;
+}
+
+#meter{
+    height:100%;
+    width:10%;
+    background:#22c55e;
+    border-radius:10px;
+    transition:0.5s;
+}
+
+/* States */
+.safe{ color:#22c55e; }
+.alert{ color:#ef4444; animation:blink 1s infinite; }
+
+@keyframes blink{
+0%{opacity:1;}
+50%{opacity:0.4;}
+100%{opacity:1;}
+}
+</style>
+</head>
+
+<body>
+
+<h1>🛡️ SOC Intrusion Monitoring System</h1>
+
+<div id="panel" class="safe">
+Monitoring network traffic...
+</div>
+
+<div id="meterBox">
+<div id="meter"></div>
+</div>
+
+<script>
+
+// AUTO SCAN EVERY 3 SECONDS
+setInterval(autoScan,3000);
+
+function autoScan(){
+
+fetch("http://127.0.0.1:5000/predict/normal")
+.then(response => response.json())
+.then(data => {
+
+let panel=document.getElementById("panel");
+let meter=document.getElementById("meter");
+
+// RANDOMIZE attack simulation probability (realistic feel)
+let randomChance=Math.random();
+
+if(randomChance>0.7){
+    // simulate attack event using backend
+    fetch("http://127.0.0.1:5000/predict/attack")
+    .then(r=>r.json())
+    .then(d=>showAttack(d));
+}
+else{
+    showNormal();
+}
+
+});
+}
+
+function showAttack(data){
+
+let panel=document.getElementById("panel");
+let meter=document.getElementById("meter");
+
+panel.className="alert";
+panel.innerText=
+"⚠️ INTRUSION DETECTED\nAttack: "+data.attack;
+
+meter.style.width="90%";
+meter.style.background="#ef4444";
+}
+
+function showNormal(){
+
+let panel=document.getElementById("panel");
+let meter=document.getElementById("meter");
+
+panel.className="safe";
+panel.innerText="✅ Network Traffic Normal";
+
+meter.style.width="20%";
+meter.style.background="#22c55e";
+}
+
+</script>
+
+</body>
+</html>
