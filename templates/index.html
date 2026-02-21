@@ -5,48 +5,43 @@
 
 <style>
 body{
-    background:#020617;
-    font-family:Arial;
-    color:white;
-    text-align:center;
-    margin-top:40px;
+background:#020617;
+font-family:Arial;
+color:white;
+text-align:center;
+margin-top:40px;
 }
 
-h1{
-    color:#38bdf8;
-}
+h1{color:#38bdf8;}
 
-/* Main Panel */
 #panel{
-    margin:auto;
-    margin-top:30px;
-    width:420px;
-    padding:30px;
-    border-radius:12px;
-    background:#111827;
-    font-size:22px;
-    font-weight:bold;
+margin:auto;
+margin-top:30px;
+width:420px;
+padding:30px;
+border-radius:12px;
+background:#111827;
+font-size:22px;
+font-weight:bold;
 }
 
-/* Threat Meter */
 #meterBox{
-    width:400px;
-    height:20px;
-    background:#1e293b;
-    margin:auto;
-    margin-top:20px;
-    border-radius:10px;
+width:400px;
+height:20px;
+background:#1e293b;
+margin:auto;
+margin-top:20px;
+border-radius:10px;
 }
 
 #meter{
-    height:100%;
-    width:10%;
-    background:#22c55e;
-    border-radius:10px;
-    transition:0.5s;
+height:100%;
+width:10%;
+background:#22c55e;
+border-radius:10px;
+transition:0.5s;
 }
 
-/* States */
 .safe{ color:#22c55e; }
 .alert{ color:#ef4444; animation:blink 1s infinite; }
 
@@ -77,23 +72,16 @@ setInterval(autoScan,3000);
 
 function autoScan(){
 
-fetch("/predict/normal")
+// randomly choose normal or attack for demo feel
+let mode = Math.random() > 0.7 ? "attack" : "normal";
+
+fetch("/predict/" + mode)
 .then(response => response.json())
 .then(data => {
 
-let panel=document.getElementById("panel");
-let meter=document.getElementById("meter");
-
-// RANDOMIZE attack simulation probability (realistic feel)
-let randomChance=Math.random();
-
-if(randomChance>0.7){
-    // simulate attack event using backend
-    fetch("/predict/attack")
-    .then(r=>r.json())
-    .then(d=>showAttack(d));
-}
-else{
+if(data.result == 1){
+    showAttack(data);
+}else{
     showNormal();
 }
 
@@ -101,20 +89,17 @@ else{
 }
 
 function showAttack(data){
-
 let panel=document.getElementById("panel");
 let meter=document.getElementById("meter");
 
 panel.className="alert";
-panel.innerText=
-"⚠️ INTRUSION DETECTED\nAttack: "+data.attack;
+panel.innerText="⚠️ INTRUSION DETECTED\nAttack: "+data.attack;
 
 meter.style.width="90%";
 meter.style.background="#ef4444";
 }
 
 function showNormal(){
-
 let panel=document.getElementById("panel");
 let meter=document.getElementById("meter");
 
