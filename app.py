@@ -13,9 +13,14 @@ import sqlite3
 conn = sqlite3.connect("bank.db", check_same_thread=False)
 conn.row_factory = sqlite3.Row
 cursor = conn.cursor()
-
-# ================= APP INIT =================
+import os
 app = Flask(__name__)
+port = int(os.environ.get("PORT", 5000))
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=port)
+# ================= APP INIT =================
+
 app.secret_key = "mysecretkey123"
 CORS(app)
 from datetime import timedelta
