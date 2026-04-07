@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Admin Dashboard</title>
+
+    <style>
+      body {
+        background: #020617;
+        color: white;
+        font-family: Arial;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #facc15;
+        text-align: center;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        background: #111827;
+        padding: 20px;
+        border-radius: 12px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      td,
+      th {
+        padding: 8px;
+        border-bottom: 1px solid #333;
+      }
+
+      .logout {
+        text-align: right;
+      }
+
+      button {
+        background: #ef4444;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>👨‍💼 Admin Dashboard</h1>
+
+    <div class="logout">
+      <button onclick="window.location.href = '/logout'">Logout</button>
+    </div>
+
+    <div class="container">
+      <!-- USERS -->
+      <div class="card">
+        <h3>👥 Users</h3>
+        <table>
+          <tr>
+            <th>Account</th>
+            <th>Email</th>
+          </tr>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.account_number }}</td>
+            <td>{{ user.email }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+
+      <!-- ATTACKS -->
+      <div class="card">
+        <h3>⚠️ Bank Attacks</h3>
+        <table>
+          <tr>
+            <th>Type</th>
+            <th>Account</th>
+          </tr>
+          {% for log in logs %}
+          <tr>
+            <td>{{ log.type }}</td>
+            <td>{{ log.account }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Reset Password</title>
+
+    <style>
+      body {
+        background: #020617;
+        font-family: Arial;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: white;
+      }
+
+      .container {
+        background: #111827;
+        padding: 30px;
+        border-radius: 12px;
+        width: 350px;
+      }
+
+      h2 {
+        text-align: center;
+        color: #ef4444;
+      }
+
+      input,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: none;
+      }
+
+      button {
+        background: #ef4444;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>🔄 Reset Password</h2>
+
+      <form method="POST" action="/reset">
+        <input type="hidden" name="account_number" value="{{ acc }}" />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="New Password"
+          required
+        />
+
+        <button type="submit">Update Password</button>
+      </form>
+    </div>
+  </body>
+</html>

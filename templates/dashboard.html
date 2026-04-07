@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <title>User Dashboard</title>
+
+    <style>
+      body {
+        background: linear-gradient(to right, #020617, #0f172a);
+        font-family: Arial;
+        color: white;
+        margin: 0;
+      }
+
+      .header {
+        background: #111827;
+        padding: 15px;
+        text-align: center;
+        color: #22c55e;
+        font-size: 20px;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        padding: 30px;
+      }
+
+      .card {
+        background: #111827;
+        padding: 20px;
+        border-radius: 12px;
+      }
+
+      h3 {
+        color: #38bdf8;
+      }
+
+      .value {
+        font-size: 16px;
+        margin-top: 5px;
+      }
+
+      .logout {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+      }
+
+      .logout button {
+        background: #ef4444;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">🏦 HVR Banking Dashboard</div>
+
+    <div class="logout">
+      <button onclick="window.location.href = '/logout'">Logout</button>
+    </div>
+
+    <div class="container">
+      <div class="card">
+        <h3>👤 Account Info</h3>
+        <div class="value">Account Number: {{ user.account_number }}</div>
+        <div class="value">Email: {{ user.email }}</div>
+      </div>
+
+      <div class="card">
+        <h3>💳 Card Details</h3>
+        <div class="value">Card Number: **** **** **** 1234</div>
+        <div class="value">Expiry: 12/28</div>
+      </div>
+
+      <div class="card">
+        <h3>🏦 Bank Details</h3>
+        <div class="value">Branch: Main Branch</div>
+        <div class="value">IFSC: SBIN0001234</div>
+      </div>
+
+      <div class="card">
+        <h3>🔒 Security Status</h3>
+        <div class="value">Last Login: Today</div>
+        <div class="value">Status: Secure</div>
+      </div>
+    </div>
+  </body>
+</html>

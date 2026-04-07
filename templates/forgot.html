@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Forgot Password</title>
+
+    <style>
+      body {
+        background: #020617;
+        font-family: Arial;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: white;
+      }
+
+      .container {
+        background: #111827;
+        padding: 30px;
+        border-radius: 12px;
+        width: 320px;
+      }
+
+      h2 {
+        color: #38bdf8;
+        text-align: center;
+      }
+
+      input,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: none;
+      }
+
+      button {
+        background: #38bdf8;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>🔑 Forgot Password</h2>
+      <script>
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get("msg") === "notfound") {
+          alert("❌ Account not found. Please try again.");
+        }
+
+        if (params.get("msg") === "wronganswer") {
+          alert("❌ Incorrect security answer. Try again.");
+        }
+      </script>
+      <form method="POST">
+        <input
+          type="text"
+          name="account_number"
+          placeholder="Account Number"
+          required
+        />
+        <button type="submit">Continue</button>
+      </form>
+    </div>
+  </body>
+</html>
