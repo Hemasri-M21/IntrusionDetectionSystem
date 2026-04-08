@@ -167,6 +167,8 @@
     </div>
 
     <script>
+      const BASE_URL = "https://hvrbank-system.onrender.com"; // 🔥 CHANGE if needed
+
       let total = 0;
       let attacks = 0;
 
@@ -176,28 +178,17 @@
       /* ================= AUTO CONTROL ================= */
 
       function startAutoScan() {
-        if (autoInterval) return; // prevent duplicate intervals
+        if (autoInterval) return;
 
         isAutoRunning = true;
 
         autoInterval = setInterval(() => {
-          if (!isAutoRunning) return;
-
           let mode = Math.random() > 0.7 ? "attack" : "normal";
 
-          fetch("/predict/" + mode)
+          fetch(BASE_URL + "/predict/" + mode)
             .then((res) => res.json())
-            .then((data) => {
-              updateStats(data);
-
-              if (data.result == 1) {
-                showAttack("Auto Scan", data);
-                addLog("⚠️ Auto Attack: " + data.attack);
-              } else {
-                showNormal("Auto Scan", data);
-                addLog("✅ Auto Normal");
-              }
-            });
+            .then((data) => handleResponse("Auto Scan", data))
+            .catch((err) => console.error("Auto error:", err));
         }, 3000);
       }
 
@@ -207,10 +198,10 @@
         isAutoRunning = false;
       }
 
-      /* ================= MANUAL WEBSITE SCAN ================= */
+      /* ================= WEBSITE SCAN ================= */
 
       function scanWebsite() {
-        stopAutoScan(); // 🔥 VERY IMPORTANT
+        stopAutoScan();
 
         let preset = document.getElementById("preset").value;
         let input = document.getElementById("website").value;
@@ -220,31 +211,21 @@
 
         let mode = Math.random() > 0.5 ? "attack" : "normal";
 
-        setTimeout(() => {
-          fetch("/predict/" + mode)
-            .then((res) => res.json())
-            .then((data) => {
-              document.getElementById("loading").style.display = "none";
-
-              updateStats(data);
-
-              if (data.result == 1) {
-                showAttack(site, data);
-                addLog("⚠️ " + site + " → " + data.attack);
-              } else {
-                showNormal(site, data);
-                addLog("✅ " + site + " safe");
-              }
-            });
-        }, 1000);
+        fetch(BASE_URL + "/predict/" + mode)
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("loading").style.display = "none";
+            handleResponse(site, data);
+          })
+          .catch((err) => console.error("Scan error:", err));
       }
 
       /* ================= BANK SYSTEM ================= */
 
       function loadBankSystem() {
-        stopAutoScan(); // 🔥 VERY IMPORTANT
+        stopAutoScan();
 
-        fetch("/bank-attacks")
+        fetch(BASE_URL + "/bank-attacks") // 🔥 FIXED
           .then((res) => res.json())
           .then((data) => {
             let status = document.getElementById("status");
@@ -252,9 +233,7 @@
 
             if (data.length === 0) {
               status.className = "safe";
-              status.innerText =
-                "🏦 BANK SYSTEM\n\n" + "✅ No Threats Detected";
-
+              status.innerText = "🏦 BANK SYSTEM\n\n✅ No Threats Detected";
               meter.style.width = "20%";
               meter.style.background = "#22c55e";
               return;
@@ -279,20 +258,23 @@
             addLog(
               "🏦 Bank Attack: " + latest.type + " (" + latest.account + ")",
             );
-          });
+          })
+          .catch((err) => console.error("Bank error:", err));
       }
 
-      /* ================= MANUAL CONTROL ================= */
+      /* ================= COMMON HANDLER ================= */
 
-      function resumeAuto() {
-        startAutoScan();
+      function handleResponse(site, data) {
+        updateStats(data);
+
+        if (data.result == 1) {
+          showAttack(site, data);
+          addLog("⚠️ " + site + " → " + data.attack);
+        } else {
+          showNormal(site, data);
+          addLog("✅ " + site + " safe");
+        }
       }
-
-      /* ================= AUTO-FILL ================= */
-
-      document.getElementById("preset").addEventListener("change", function () {
-        document.getElementById("website").value = this.value;
-      });
 
       /* ================= STATS ================= */
 
@@ -359,8 +341,11 @@
         log.prepend(entry);
       }
 
-      /* ================= IMPORTANT ================= */
-      /* 🔥 NO AUTO START HERE */
+      /* ================= AUTO FILL ================= */
+
+      document.getElementById("preset").addEventListener("change", function () {
+        document.getElementById("website").value = this.value;
+      });
     </script>
   </body>
 </html>
