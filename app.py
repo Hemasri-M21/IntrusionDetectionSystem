@@ -228,10 +228,13 @@ def login():
         else:
             failed_attempts[acc] += 1
 
-            # 🚨 attack detected
+    # 🚨 attack detected
             if failed_attempts[acc] >= 3:
                 print("🚨 Attack detected for:", acc)
-                send_email_alert(acc)  # 📧 send email
+                try:
+                    send_email_alert(acc)
+                except Exception as e:
+                    print("Email error:", e)
 
                 return redirect("/login?msg=attack")
 
