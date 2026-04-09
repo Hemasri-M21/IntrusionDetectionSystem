@@ -173,17 +173,15 @@
       let attacks = 0;
 
       let autoInterval = null;
-      let isAutoRunning = false;
 
       /* ================= AUTO CONTROL ================= */
 
       function startAutoScan() {
-        // 🔥 FIX: Always clear old interval
-        if (autoInterval) clearInterval(autoInterval);
-
-        isAutoRunning = true;
+        stopAutoScan(); // 🔥 ALWAYS reset first
 
         autoInterval = setInterval(() => {
+          console.log("Auto scanning..."); // DEBUG
+
           let mode = Math.random() > 0.7 ? "attack" : "normal";
 
           fetch(BASE_URL + "/predict/" + mode)
@@ -191,18 +189,20 @@
             .then((data) => handleResponse("Auto Scan", data))
             .catch((err) => console.error("Auto error:", err));
         }, 3000);
+
+        addLog("▶️ Auto Scan Started");
       }
 
       function stopAutoScan() {
-        clearInterval(autoInterval);
-        autoInterval = null;
-        isAutoRunning = false;
+        if (autoInterval !== null) {
+          clearInterval(autoInterval);
+          autoInterval = null;
+          addLog("⏸️ Auto Scan Stopped");
+        }
       }
 
       function resumeAuto() {
-        // 🔥 FIX: Restart properly
-        stopAutoScan();
-        startAutoScan();
+        startAutoScan(); // 🔥 clean restart
       }
 
       /* ================= WEBSITE SCAN ================= */
@@ -305,12 +305,10 @@
         status.innerText =
           "🌐 Website: " +
           site +
-          "\n\n" +
-          "⚠️ INTRUSION DETECTED\n" +
+          "\n\n⚠️ INTRUSION DETECTED\n" +
           "Type: " +
           data.attack +
-          "\n" +
-          "Confidence: " +
+          "\nConfidence: " +
           data.confidence +
           "%";
 
@@ -326,8 +324,7 @@
         status.innerText =
           "🌐 Website: " +
           site +
-          "\n\n" +
-          "✅ No Threat Detected\n" +
+          "\n\n✅ No Threat Detected\n" +
           "Confidence: " +
           data.confidence +
           "%";
@@ -354,7 +351,7 @@
         document.getElementById("website").value = this.value;
       });
 
-      /* 🔥 AUTO START ON LOAD */
+      /* 🔥 START AUTO ON LOAD */
       startAutoScan();
     </script>
   </body>
