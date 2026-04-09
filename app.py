@@ -230,10 +230,15 @@ def login():
             if failed_attempts[acc] >= 3:
                 print("🚨 Attack detected for:", acc)
 
+                attack_logs.append({
+        "account": acc,
+        "type": "Brute Force Attack"
+    })
                 try:
                     send_email_alert(acc)
                 except Exception as e:
                     print("Email error:", e)
+                    pass
 
                 return redirect("/login?msg=attack")
 
