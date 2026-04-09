@@ -204,9 +204,6 @@ def login():
         acc = request.form["account_number"]
         pwd = request.form["password"]
 
-        if acc not in failed_attempts:
-            failed_attempts[acc] = 0
-
         conn = get_db()
         cursor = conn.cursor()
 
@@ -225,15 +222,16 @@ def login():
 
         # ❌ wrong login
         else:
-            failed_attempts[acc] += 1
+            failed_attempts[acc] = failed_attempts.get(acc, 0) + 1
 
             if failed_attempts[acc] >= 3:
                 print("🚨 Attack detected for:", acc)
 
                 attack_logs.append({
-        "account": acc,
-        "type": "Brute Force Attack"
-    })
+                    "account": acc,
+                    "type": "Brute Force Attack"
+                })
+
                 try:
                     send_email_alert(acc)
                 except Exception as e:
@@ -244,7 +242,6 @@ def login():
 
             return redirect("/login?msg=invalid")
 
-    # 🔥 THIS MUST BE OUTSIDE IF
     return render_template("login.html")
 # ================= DASHBOARD =================
 @app.route("/dashboard")
