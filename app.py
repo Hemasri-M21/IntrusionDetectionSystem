@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 import joblib
 from email.mime.text import MIMEText
-import smtplib
 import threading
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey123"
@@ -348,42 +349,22 @@ def reset():
 
     return redirect("/login?msg=reset")
 def send_email_alert(account):
-    sender = "mulavagilahemasrirenuka@gmail.com"
-    password = os.environ.get("EMAIL_PASSWORD")
-    receiver = "mulavagilahemasrirenuka@gmail.com"
-
-    if not password:
-        print("❌ EMAIL_PASSWORD not set")
-        return
-
-    subject = "🚨 SECURITY ALERT - BANK SYSTEM"
-    body = f"""
-🚨 SECURITY ALERT
-
-A suspicious login attempt was detected.
-
-Account Number: {account}
-Attack Type: Brute Force Attack
-Time: {pd.Timestamp.now()}
-
-Action Required:
-Please verify this activity immediately.
-
-- Bank Security System
-"""
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = receiver
-
     try:
-        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)  # ✅ only once
-        server.starttls()
-        server.login(sender, password)
-        server.sendmail(sender, receiver, msg.as_string())
-        server.quit()
-        print("✅ Email sent")
+        message = Mail(
+            from_email='notjustsri@gmail.com',
+            to_emails='notjustsri@gmail.com',
+            subject='🚨 SECURITY ALERT',
+            html_content=f'''
+            <strong>Suspicious Login Detected</strong><br>
+            Account: {account}<br>
+            Type: Brute Force Attack
+            '''
+        )
+
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        sg.send(message)
+
+        print("✅ Email sent via SendGrid")
 
     except Exception as e:
         print("❌ Email failed:", e)
