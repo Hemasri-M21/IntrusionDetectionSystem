@@ -1,19 +1,26 @@
 from flask import Flask, jsonify, render_template, request, redirect, session
-import joblib
+import sqlite3
+import os
 from flask_cors import CORS
-import pandas as pd
 import random
 import numpy as np
-import smtplib
-from email.mime.text import MIMEText
+import pandas as pd
+import joblib
 
-# ================= DB CONNECTION =================
-import sqlite3
+app = Flask(__name__)
+app.secret_key = "mysecretkey123"
+CORS(app)
 
-conn = sqlite3.connect("bank.db", check_same_thread=False)
-conn.row_factory = sqlite3.Row
+# ================= DB FUNCTION =================
+def get_db():
+    conn = sqlite3.connect("bank.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# ================= CREATE TABLES =================
+conn = get_db()
 cursor = conn.cursor()
-# Create tables if not exist
+
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     account_number TEXT PRIMARY KEY,
@@ -26,137 +33,59 @@ CREATE TABLE IF NOT EXISTS users (
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS admin (
-    admin_id TEXT,
+    admin_id TEXT PRIMARY KEY,
     username TEXT,
     password TEXT
 )
 """)
-# Check if admin table is empty
-cursor.execute("SELECT COUNT(*) FROM admin")
-count = cursor.fetchone()[0]
 
-if count == 0:
-    admins = [
-        ("153AD", "hemasri", "hemasri1221"),
-        ("154AD", "chandra", "chandra123"),
-        ("155AD", "tejaswini", "teju123"),
-        ("156AD", "harika", "harika123")
-    ]
+# Insert admins safely
+admins = [
+    ("153AD", "hemasri", "hemasri1221"),
+    ("154AD", "chandra", "chandra123"),
+    ("155AD", "tejaswini", "teju123"),
+    ("156AD", "harika", "harika123")
+]
 
-    cursor.executemany("""
-    INSERT INTO admin (admin_id, username, password)
+for admin in admins:
+    cursor.execute("""
+    INSERT OR IGNORE INTO admin (admin_id, username, password)
     VALUES (?, ?, ?)
-    """, admins)
+    """, admin)
 
-    conn.commit()
 conn.commit()
-import os
-app = Flask(__name__)
-port = int(os.environ.get("PORT", 5000))
+conn.close()
 
-
-# ================= APP INIT =================
-
-app.secret_key = "mysecretkey123"
-CORS(app)
-from datetime import timedelta
-app.permanent_session_lifetime = timedelta(minutes=10)
 # ================= LOAD MODEL =================
 try:
     model, input_columns = joblib.load("ids_model.pkl")
     df = pd.read_csv("processed_input.csv")
-except Exception as e:
-    print("Error loading model/data:", e)
+except:
     model = None
     df = pd.DataFrame()
 
 attack_types = [
-    "smurf (DoS)",
-    "neptune (DoS)",
-    "teardrop (DoS)",
-    "satan (Probe)",
-    "nmap (Probe)",
-    "ipsweep (Probe)",
-    "guess_passwd (R2L)",
-    "warezclient (R2L)",
-    "buffer_overflow (U2R)",
-    "rootkit (U2R)"
+    "smurf (DoS)", "neptune (DoS)", "teardrop (DoS)",
+    "satan (Probe)", "nmap (Probe)", "ipsweep (Probe)",
+    "guess_passwd (R2L)", "warezclient (R2L)",
+    "buffer_overflow (U2R)", "rootkit (U2R)"
 ]
 
-# ================= GLOBAL STORAGE =================
 failed_attempts = {}
 attack_logs = []
-
-# ================= EMAIL ALERT =================
-def send_email_alert(account):
-    sender = "mulavagilahemasrirenuka@gmail.com"
-    password = "lykf fshj dsmg bzhk"
-    receiver = "mulavagilahemasrirenuka@gmail.com"
-
-    subject = "🚨 SECURITY ALERT - BANK SYSTEM"
-    body = f"""
-ALERT!
-
-Suspicious login detected.
-
-Account: {account}
-Type: Brute Force Attack
-
-Check SOC dashboard immediately.
-"""
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = receiver
-
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(sender, password)
-        server.sendmail(sender, receiver, msg.as_string())
-        server.quit()
-        print("✅ Email sent")
-    except Exception as e:
-        print("❌ Email failed:", e)
 
 # ================= HOME =================
 @app.route("/")
 def home():
     return render_template("home.html")
+
+# ================= SOC =================
 @app.route("/soc")
-def soc_dashboard():
+def soc():
     if "admin" not in session:
         return redirect("/soc-login")
-
     return render_template("index.html")
-# ================= PREDICT =================
-@app.route("/predict/<mode>")
-def predict(mode):
 
-    sample = df.sample(1)
-
-    if mode == "normal":
-        prediction = model.predict(sample)
-        probabilities = model.predict_proba(sample)
-
-        result = int(prediction[0])
-        confidence = float(np.max(probabilities)) * 100
-        attack_name = "None"
-
-    elif mode == "attack":
-        result = 1
-        attack_name = random.choice(attack_types)
-        confidence = random.uniform(80, 99)
-
-    else:
-        return jsonify({"error": "Invalid mode"}), 400
-
-    return jsonify({
-        "result": result,
-        "attack": attack_name,
-        "confidence": round(confidence, 2)
-    })
 @app.route("/soc-login", methods=["GET", "POST"])
 def soc_login():
     if request.method == "POST":
@@ -164,24 +93,29 @@ def soc_login():
         username = request.form["username"]
         password = request.form["password"]
 
+        conn = get_db()
+        cursor = conn.cursor()
+
         cursor.execute(
             "SELECT * FROM admin WHERE admin_id=? AND username=? AND password=?",
             (admin_id, username, password)
         )
         admin = cursor.fetchone()
+        conn.close()
 
         if admin:
-            session.permanent = True
             session["admin"] = admin_id
             return redirect("/soc")
         else:
             return redirect("/soc-login?msg=invalid")
 
     return render_template("soc_login.html")
+
 @app.route("/soc-logout")
 def soc_logout():
     session.clear()
     return redirect("/soc-login")
+
 # ================= REGISTER =================
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -196,80 +130,65 @@ def register():
         if pwd != confirm:
             return redirect("/register?msg=nomatch")
 
+        conn = get_db()
+        cursor = conn.cursor()
+
         cursor.execute("SELECT * FROM users WHERE account_number=?", (acc,))
         user = cursor.fetchone()
 
         if user:
+            conn.close()
             return redirect("/login?msg=exists")
 
-        cursor.execute(
-            "INSERT INTO users (account_number, password, email, security_question, security_answer) VALUES (?, ?, ?, ?, ?)",
-            (acc, pwd, email, ques, ans)
-        )
+        cursor.execute("""
+        INSERT INTO users (account_number, password, email, security_question, security_answer)
+        VALUES (?, ?, ?, ?, ?)
+        """, (acc, pwd, email, ques, ans))
+
         conn.commit()
+        conn.close()
 
         return redirect("/login?msg=registered")
 
     return render_template("register.html")
 
-# ================= LOGIN + IDS =================
+# ================= LOGIN =================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         acc = request.form["account_number"]
         pwd = request.form["password"]
 
-        if acc not in failed_attempts:
-            failed_attempts[acc] = 0
+        conn = get_db()
+        cursor = conn.cursor()
 
         cursor.execute(
             "SELECT * FROM users WHERE account_number=? AND password=?",
             (acc, pwd)
         )
         user = cursor.fetchone()
+        conn.close()
 
         if user:
-            failed_attempts[acc] = 0
             session["user"] = acc
             return redirect("/dashboard")
-
         else:
-            failed_attempts[acc] += 1
-
-            if failed_attempts[acc] >= 3:
-                attack_logs.append({
-                    "type": "Brute Force Attack",
-                    "account": acc,
-                    "source": "bank_system"
-                })
-
-                send_email_alert(acc)
-
-                return redirect("/login?msg=attack")
-
             return redirect("/login?msg=invalid")
 
     return render_template("login.html")
 
-# ================= BANK ATTACKS =================
-@app.route("/bank-attacks")
-def bank_attacks():
-    bank_logs = [log for log in attack_logs if log.get("source") == "bank_system"]
-    return jsonify(bank_logs)
-
-@app.route("/attacks")
-def get_attacks():
-    return jsonify(attack_logs)
-
-# ================= USER DASHBOARD =================
+# ================= DASHBOARD =================
 @app.route("/dashboard")
 def dashboard():
     if "user" not in session:
         return redirect("/login")
 
-    acc = session["user"]
-    cursor.execute("SELECT * FROM users WHERE account_number=?", (acc,))
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM users WHERE account_number=?", (session["user"],))
     user = cursor.fetchone()
+    conn.close()
 
     return render_template("dashboard.html", user=user)
 
@@ -279,88 +198,41 @@ def logout():
     session.clear()
     return redirect("/login")
 
-# ================= ADMIN LOGIN =================
-@app.route("/admin-login", methods=["GET", "POST"])
-def admin_login():
-    if request.method == "POST":
-        admin_id = request.form["admin_id"]
-        username = request.form["username"]
-        password = request.form["password"]
+# ================= IDS =================
+@app.route("/predict/<mode>")
+def predict(mode):
+    if df.empty or model is None:
+        return jsonify({"result": 0, "attack": "None", "confidence": 50})
 
-        cursor.execute(
-            "SELECT * FROM admin WHERE admin_id=? AND username=? AND password=?",
-            (admin_id, username, password)
-        )
-        admin = cursor.fetchone()
+    sample = df.sample(1)
 
-        if admin:
-            session.permanent = True
-            session["admin"] = admin_id
-            return redirect("/admin-dashboard")
-        else:
-            return redirect("/admin-login?msg=invalid")
-
-    return render_template("admin_login.html")
-
-# ================= ADMIN DASHBOARD =================
-@app.route("/admin-dashboard")
-def admin_dashboard():
-    if "admin" not in session:
-        return redirect("/admin-login")
-
-    cursor.execute("SELECT account_number, email FROM users")
-    users = cursor.fetchall()
-
-    bank_logs = [log for log in attack_logs if log.get("source") == "bank_system"]
-
-    return render_template("admin_dashboard.html", users=users, logs=bank_logs)
-
-# ================= FORGOT PASSWORD =================
-@app.route("/forgot", methods=["GET", "POST"])
-def forgot():
-    if request.method == "POST":
-        acc = request.form["account_number"]
-
-        cursor.execute("SELECT * FROM users WHERE account_number=?", (acc,))
-        user = cursor.fetchone()
-
-        if user:
-            return render_template("verify.html", user=user)
-        else:
-            return redirect("/forgot?msg=notfound")
-
-    return render_template("forgot.html")
-
-# ================= VERIFY =================
-@app.route("/verify", methods=["POST"])
-def verify():
-    acc = request.form["account_number"]
-    answer = request.form["answer"]
-
-    cursor.execute("SELECT * FROM users WHERE account_number=?", (acc,))
-    user = cursor.fetchone()
-
-    if user and user["security_answer"] == answer:
-        return render_template("reset.html", acc=acc)
+    if mode == "normal":
+        prediction = model.predict(sample)
+        probabilities = model.predict_proba(sample)
+        result = int(prediction[0])
+        confidence = float(np.max(probabilities)) * 100
+        attack_name = "None"
     else:
-        return redirect("/forgot?msg=wronganswer")
+        result = 1
+        attack_name = random.choice(attack_types)
+        confidence = random.uniform(80, 99)
 
-# ================= RESET =================
-@app.route("/reset", methods=["POST"])
-def reset():
-    acc = request.form["account_number"]
-    new_password = request.form["password"]
+    return jsonify({
+        "result": result,
+        "attack": attack_name,
+        "confidence": round(confidence, 2)
+    })
 
-    cursor.execute(
-        "UPDATE users SET password=? WHERE account_number=?",
-        (new_password, acc)
-    )
-    conn.commit()
+# ================= ATTACKS =================
+@app.route("/bank-attacks")
+def bank_attacks():
+    return jsonify(attack_logs)
 
-    return redirect("/login?msg=reset")
+@app.route("/attacks")
+def attacks():
+    return jsonify(attack_logs)
 
 # ================= RUN =================
 if __name__ == "__main__":
-    app.run(debug=True)
-if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
