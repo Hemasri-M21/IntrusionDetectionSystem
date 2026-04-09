@@ -352,7 +352,7 @@ def send_email_alert(account):
     try:
         message = Mail(
             from_email='notjustsri@gmail.com',
-            to_emails='notjustsri@gmail.com',
+            to_emails='mulavagilahemasrirenuka@gmail.com',
             subject='🚨 SECURITY ALERT',
             html_content=f'''
             <strong>Suspicious Login Detected</strong><br>
