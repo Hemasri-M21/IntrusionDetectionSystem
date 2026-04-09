@@ -25,8 +25,13 @@ CORS(app)
 from datetime import timedelta
 app.permanent_session_lifetime = timedelta(minutes=10)
 # ================= LOAD MODEL =================
-model, input_columns = joblib.load("ids_model.pkl")
-df = pd.read_csv("processed_input.csv")
+try:
+    model, input_columns = joblib.load("ids_model.pkl")
+    df = pd.read_csv("processed_input.csv")
+except Exception as e:
+    print("Error loading model/data:", e)
+    model = None
+    df = pd.DataFrame()
 
 attack_types = [
     "smurf (DoS)",
