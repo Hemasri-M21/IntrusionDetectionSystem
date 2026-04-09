@@ -87,10 +87,10 @@
             <th>Type</th>
             <th>Account</th>
           </tr>
-          {% for log in logs %}
+          {% for attack in attacks %}
           <tr>
-            <td>{{ log.type }}</td>
-            <td>{{ log.account }}</td>
+            <td>{{ attack.type }}</td>
+            <td>{{ attack.account }}</td>
           </tr>
           {% endfor %}
         </table>

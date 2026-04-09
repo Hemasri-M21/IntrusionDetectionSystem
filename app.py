@@ -121,7 +121,7 @@ def admin_dashboard():
     users = cursor.fetchall()
     conn.close()
 
-    return render_template("admin_dashboard.html", users=users)
+    return render_template("admin_dashboard.html", users=users, attacks=attack_logs)
 
 # ================= SOC =================
 @app.route("/soc")
