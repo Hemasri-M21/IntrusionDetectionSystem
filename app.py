@@ -10,6 +10,7 @@ import joblib
 app = Flask(__name__)
 app.secret_key = "mysecretkey123"
 CORS(app)
+failed_attempts = {}
 
 # ================= DB FUNCTION =================
 def get_db():
@@ -201,23 +202,41 @@ def login():
         acc = request.form["account_number"]
         pwd = request.form["password"]
 
+        # initialize counter
+        if acc not in failed_attempts:
+            failed_attempts[acc] = 0
+
         conn = get_db()
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT * FROM users WHERE account_number=? AND password=?",
-            (acc, pwd)
+            "SELECT * FROM users WHERE account_number=?",
+            (acc,)
         )
         user = cursor.fetchone()
         conn.close()
 
-        if user:
+        # ✅ correct login
+        if user and user["password"] == pwd:
+            failed_attempts[acc] = 0   # reset attempts
             session["user"] = acc
             return redirect("/dashboard")
+
+        # ❌ wrong password
         else:
+            failed_attempts[acc] += 1
+
+            # 🚨 attack detected
+            if failed_attempts[acc] >= 3:
+                send_email_alert(acc)  # 📧 send email
+
+                return redirect("/login?msg=attack")
+
             return redirect("/login?msg=invalid")
 
     return render_template("login.html")
+def send_email_alert(account):
+    print(f"🚨 ALERT: Attack detected on account {account}")
 
 # ================= DASHBOARD =================
 @app.route("/dashboard")

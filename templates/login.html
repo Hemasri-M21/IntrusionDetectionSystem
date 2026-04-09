@@ -80,13 +80,12 @@
         if (params.get("msg") === "invalid") {
           alert("❌ Invalid account number or password.");
         }
-
-        if (params.get("msg") === "attack") {
-          alert(
-            "🚨 Suspicious activity detected! Account temporarily flagged.",
-          );
-        }
       </script>
+      {% if request.args.get('msg') == 'attack' %}
+      <p style="color: red">
+        🚨 Suspicious attack detected! Account temporarily flagged.
+      </p>
+      {% endif %}
       <form method="POST">
         <input
           type="number"
