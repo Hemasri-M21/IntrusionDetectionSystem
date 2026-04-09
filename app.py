@@ -234,10 +234,10 @@ def login():
                 "type": "Brute Force Attack"
             })
 
-            '''try:
+            try:
                 send_email_alert(acc)
             except Exception as e:
-                print("Email error:", e)'''
+                print("Email error:", e)
             print("🚨 Email skipped for testing")
             return redirect("/login?msg=attack")
 
@@ -351,7 +351,7 @@ def reset():
     return redirect("/login?msg=reset")
 def send_email_alert(account):
     sender = "mulavagilahemasrirenuka@gmail.com"
-    password = "lykffshjdsmgbzhk"
+    password = os.environ.get("EMAIL_PASSWORD")
     receiver = "mulavagilahemasrirenuka@gmail.com"
 
     subject = "🚨 SECURITY ALERT - BANK SYSTEM"
