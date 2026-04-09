@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS admin (
 """)
 
 # Insert admins safely
+conn = get_db()
+cursor = conn.cursor()
+
 admins = [
     ("153AD", "hemasri", "hemasri1221"),
     ("154AD", "chandra", "chandra123"),
@@ -78,6 +81,31 @@ attack_logs = []
 @app.route("/")
 def home():
     return render_template("home.html")
+@app.route("/admin-login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        admin_id = request.form["admin_id"]
+        username = request.form["username"]
+        password = request.form["password"]
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT * FROM admin WHERE admin_id=? AND username=? AND password=?",
+            (admin_id, username, password)
+        )
+        admin = cursor.fetchone()
+
+        conn.close()
+
+        if admin:
+            session["admin"] = admin_id
+            return redirect("/admin-dashboard")
+        else:
+            return redirect("/admin-login?msg=invalid")
+
+    return render_template("admin_login.html")
 
 # ================= SOC =================
 @app.route("/soc")
@@ -101,6 +129,7 @@ def soc_login():
             (admin_id, username, password)
         )
         admin = cursor.fetchone()
+
         conn.close()
 
         if admin:
