@@ -8,6 +8,7 @@ import pandas as pd
 import joblib
 from email.mime.text import MIMEText
 import smtplib
+import threading
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey123"
@@ -234,10 +235,7 @@ def login():
                 "type": "Brute Force Attack"
             })
 
-            try:
-                send_email_alert(acc)
-            except Exception as e:
-                print("Email error:", e)
+            threading.Thread(target=send_email_alert, args=(acc,)).start()
             print("🚨 Email skipped for testing")
             return redirect("/login?msg=attack")
 
