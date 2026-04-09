@@ -6,6 +6,8 @@ import random
 import numpy as np
 import pandas as pd
 import joblib
+from email.mime.text import MIMEText
+import smtplib
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey123"
@@ -235,8 +237,6 @@ def login():
             return redirect("/login?msg=invalid")
 
     return render_template("login.html")
-def send_email_alert(account):
-    print(f"🚨 ALERT: Attack detected on account {account}")
 
 # ================= DASHBOARD =================
 @app.route("/dashboard")
@@ -343,26 +343,37 @@ def reset():
     conn.close()
 
     return redirect("/login?msg=reset")
-import smtplib
-
 def send_email_alert(account):
-    try:
-        sender = "mulavagilahemasrirenuka@gmail.com"
-        password = "lykf fshj dsmg bzhk"  # ⚠️ NOT normal password
+    sender = "mulavagilahemasrirenuka@gmail.com"
+    password = "lykf fshj dsmg bzhk"
+    receiver = "mulavagilahemasrirenuka@gmail.com"
 
+    subject = "🚨 SECURITY ALERT - BANK SYSTEM"
+    body = f"""
+ALERT!
+
+Suspicious login detected.
+
+Account: {account}
+Type: Brute Force Attack
+
+Check SOC dashboard immediately.
+"""
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = sender
+    msg["To"] = receiver
+
+    try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(sender, password)
-
-        message = f"🚨 ALERT: Suspicious login detected for account {account}. Attack: Brute Force check the dashboard immediately"
-
-        server.sendmail(sender, sender, message)
+        server.sendmail(sender, receiver, msg.as_string())
         server.quit()
-
         print("✅ Email sent")
-
     except Exception as e:
-        print("❌ Email error:", e)
+        print("❌ Email failed:", e)
 
 # ================= RUN =================
 if __name__ == "__main__":
