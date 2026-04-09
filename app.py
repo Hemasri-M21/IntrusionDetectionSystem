@@ -201,8 +201,11 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        acc = request.form["account_number"]
-        pwd = request.form["password"]
+        acc = request.form.get("account_number")
+        pwd = request.form.get("password")
+
+        if not acc or not pwd:
+            return redirect("/login?msg=invalid")
 
         conn = get_db()
         cursor = conn.cursor()
@@ -221,26 +224,25 @@ def login():
             return redirect("/dashboard")
 
         # ❌ wrong login
-        else:
-            failed_attempts[acc] = failed_attempts.get(acc, 0) + 1
+        failed_attempts[acc] = failed_attempts.get(acc, 0) + 1
 
-            if failed_attempts[acc] >= 3:
-                print("🚨 Attack detected for:", acc)
+        if failed_attempts[acc] >= 3:
+            print("🚨 Attack detected for:", acc)
 
-                attack_logs.append({
-                    "account": acc,
-                    "type": "Brute Force Attack"
-                })
+            attack_logs.append({
+                "account": acc,
+                "type": "Brute Force Attack"
+            })
 
-                try:
-                    send_email_alert(acc)
-                except Exception as e:
-                    print("Email error:", e)
-                    pass
-
+            try:
+                send_email_alert(acc)
+            except Exception as e:
+                print("Email error:", e)
                 return redirect("/login?msg=attack")
 
-            return redirect("/login?msg=invalid")
+            return redirect("/login?msg=attack")
+
+        return redirect("/login?msg=invalid")
 
     return render_template("login.html")
 # ================= DASHBOARD =================
