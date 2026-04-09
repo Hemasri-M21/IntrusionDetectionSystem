@@ -31,7 +31,24 @@ CREATE TABLE IF NOT EXISTS admin (
     password TEXT
 )
 """)
+# Check if admin table is empty
+cursor.execute("SELECT COUNT(*) FROM admin")
+count = cursor.fetchone()[0]
 
+if count == 0:
+    admins = [
+        ("153AD", "hemasri", "hemasri1221"),
+        ("154AD", "chandra", "chandra123"),
+        ("155AD", "tejaswini", "teju123"),
+        ("156AD", "harika", "harika123")
+    ]
+
+    cursor.executemany("""
+    INSERT INTO admin (admin_id, username, password)
+    VALUES (?, ?, ?)
+    """, admins)
+
+    conn.commit()
 conn.commit()
 import os
 app = Flask(__name__)
