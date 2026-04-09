@@ -352,16 +352,24 @@ def send_email_alert(account):
     password = os.environ.get("EMAIL_PASSWORD")
     receiver = "mulavagilahemasrirenuka@gmail.com"
 
+    if not password:
+        print("❌ EMAIL_PASSWORD not set")
+        return
+
     subject = "🚨 SECURITY ALERT - BANK SYSTEM"
     body = f"""
-ALERT!
+🚨 SECURITY ALERT
 
-Suspicious login detected.
+A suspicious login attempt was detected.
 
-Account: {account}
-Type: Brute Force Attack
+Account Number: {account}
+Attack Type: Brute Force Attack
+Time: {pd.Timestamp.now()}
 
-Check SOC dashboard immediately.
+Action Required:
+Please verify this activity immediately.
+
+- Bank Security System
 """
 
     msg = MIMEText(body)
@@ -370,12 +378,13 @@ Check SOC dashboard immediately.
     msg["To"] = receiver
 
     try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)  # ✅ only once
         server.starttls()
         server.login(sender, password)
         server.sendmail(sender, receiver, msg.as_string())
         server.quit()
         print("✅ Email sent")
+
     except Exception as e:
         print("❌ Email failed:", e)
 
