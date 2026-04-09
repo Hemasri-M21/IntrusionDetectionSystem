@@ -13,6 +13,26 @@ import sqlite3
 conn = sqlite3.connect("bank.db", check_same_thread=False)
 conn.row_factory = sqlite3.Row
 cursor = conn.cursor()
+# Create tables if not exist
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    account_number TEXT PRIMARY KEY,
+    password TEXT,
+    email TEXT,
+    security_question TEXT,
+    security_answer TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS admin (
+    admin_id TEXT,
+    username TEXT,
+    password TEXT
+)
+""")
+
+conn.commit()
 import os
 app = Flask(__name__)
 port = int(os.environ.get("PORT", 5000))
