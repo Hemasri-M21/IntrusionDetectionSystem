@@ -204,7 +204,6 @@ def login():
         acc = request.form["account_number"]
         pwd = request.form["password"]
 
-        # initialize counter
         if acc not in failed_attempts:
             failed_attempts[acc] = 0
 
@@ -220,17 +219,17 @@ def login():
 
         # ✅ correct login
         if user and user["password"] == pwd:
-            failed_attempts[acc] = 0   # reset attempts
+            failed_attempts[acc] = 0
             session["user"] = acc
             return redirect("/dashboard")
 
-        # ❌ wrong password
+        # ❌ wrong login
         else:
             failed_attempts[acc] += 1
 
-    # 🚨 attack detected
             if failed_attempts[acc] >= 3:
                 print("🚨 Attack detected for:", acc)
+
                 try:
                     send_email_alert(acc)
                 except Exception as e:
@@ -240,8 +239,8 @@ def login():
 
             return redirect("/login?msg=invalid")
 
+    # 🔥 THIS MUST BE OUTSIDE IF
     return render_template("login.html")
-
 # ================= DASHBOARD =================
 @app.route("/dashboard")
 def dashboard():
