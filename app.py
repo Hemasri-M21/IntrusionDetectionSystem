@@ -231,6 +231,57 @@ def bank_attacks():
 @app.route("/attacks")
 def attacks():
     return jsonify(attack_logs)
+@app.route("/forgot", methods=["GET", "POST"])
+def forgot():
+    if request.method == "POST":
+        acc = request.form["account_number"]
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM users WHERE account_number=?", (acc,))
+        user = cursor.fetchone()
+        conn.close()
+
+        if user:
+            return render_template("verify.html", user=user)
+        else:
+            return redirect("/forgot?msg=notfound")
+
+    return render_template("forgot.html")
+@app.route("/verify", methods=["POST"])
+def verify():
+    acc = request.form["account_number"]
+    answer = request.form["answer"]
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM users WHERE account_number=?", (acc,))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user and user["security_answer"] == answer:
+        return render_template("reset.html", acc=acc)
+    else:
+        return redirect("/forgot?msg=wronganswer")
+@app.route("/reset", methods=["POST"])
+def reset():
+    acc = request.form["account_number"]
+    new_password = request.form["password"]
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "UPDATE users SET password=? WHERE account_number=?",
+        (new_password, acc)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/login?msg=reset")
 
 # ================= RUN =================
 if __name__ == "__main__":
