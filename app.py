@@ -106,6 +106,19 @@ def admin_login():
             return redirect("/admin-login?msg=invalid")
 
     return render_template("admin_login.html")
+@app.route("/admin-dashboard")
+def admin_dashboard():
+    if "admin" not in session:
+        return redirect("/admin-login")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT account_number, email FROM users")
+    users = cursor.fetchall()
+    conn.close()
+
+    return render_template("admin_dashboard.html", users=users)
 
 # ================= SOC =================
 @app.route("/soc")
