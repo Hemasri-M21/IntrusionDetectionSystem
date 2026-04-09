@@ -234,12 +234,11 @@ def login():
                 "type": "Brute Force Attack"
             })
 
-            try:
+            '''try:
                 send_email_alert(acc)
             except Exception as e:
-                print("Email error:", e)
-                return redirect("/login?msg=attack")
-
+                print("Email error:", e)'''
+            print("🚨 Email skipped for testing")
             return redirect("/login?msg=attack")
 
         return redirect("/login?msg=invalid")
