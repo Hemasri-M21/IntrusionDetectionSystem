@@ -167,7 +167,7 @@
     </div>
 
     <script>
-      const BASE_URL = "https://hvrbank-system.onrender.com"; // 🔥 CHANGE if needed
+      const BASE_URL = "https://hvrbank-system.onrender.com";
 
       let total = 0;
       let attacks = 0;
@@ -178,7 +178,8 @@
       /* ================= AUTO CONTROL ================= */
 
       function startAutoScan() {
-        if (autoInterval) return;
+        // 🔥 FIX: Always clear old interval
+        if (autoInterval) clearInterval(autoInterval);
 
         isAutoRunning = true;
 
@@ -196,6 +197,12 @@
         clearInterval(autoInterval);
         autoInterval = null;
         isAutoRunning = false;
+      }
+
+      function resumeAuto() {
+        // 🔥 FIX: Restart properly
+        stopAutoScan();
+        startAutoScan();
       }
 
       /* ================= WEBSITE SCAN ================= */
@@ -225,7 +232,7 @@
       function loadBankSystem() {
         stopAutoScan();
 
-        fetch(BASE_URL + "/bank-attacks") // 🔥 FIXED
+        fetch(BASE_URL + "/bank-attacks")
           .then((res) => res.json())
           .then((data) => {
             let status = document.getElementById("status");
@@ -346,6 +353,9 @@
       document.getElementById("preset").addEventListener("change", function () {
         document.getElementById("website").value = this.value;
       });
+
+      /* 🔥 AUTO START ON LOAD */
+      startAutoScan();
     </script>
   </body>
 </html>
