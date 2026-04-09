@@ -343,6 +343,26 @@ def reset():
     conn.close()
 
     return redirect("/login?msg=reset")
+import smtplib
+
+def send_email_alert(account):
+    try:
+        sender = "mulavagilahemasrirenuka@gmail.com"
+        password = "lykf fshj dsmg bzhk"  # ⚠️ NOT normal password
+
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender, password)
+
+        message = f"🚨 ALERT: Suspicious login detected for account {account}. Attack: Brute Force check the dashboard immediately"
+
+        server.sendmail(sender, sender, message)
+        server.quit()
+
+        print("✅ Email sent")
+
+    except Exception as e:
+        print("❌ Email error:", e)
 
 # ================= RUN =================
 if __name__ == "__main__":
