@@ -230,6 +230,7 @@ def login():
 
             # 🚨 attack detected
             if failed_attempts[acc] >= 3:
+                print("🚨 Attack detected for:", acc)
                 send_email_alert(acc)  # 📧 send email
 
                 return redirect("/login?msg=attack")
@@ -345,7 +346,7 @@ def reset():
     return redirect("/login?msg=reset")
 def send_email_alert(account):
     sender = "mulavagilahemasrirenuka@gmail.com"
-    password = "lykf fshj dsmg bzhk"
+    password = "lykffshjdsmgbzhk"
     receiver = "mulavagilahemasrirenuka@gmail.com"
 
     subject = "🚨 SECURITY ALERT - BANK SYSTEM"
